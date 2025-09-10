@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep  9 17:41:17 2025
+
+@author: jauha
+"""
+
+import yfinance as yf
+from stocktrends import Renko
+
+tickers=["RELIANCE.NS","TCS.NS","SBIN.NS"]
+
+ohlcv_data={}
+hourly_data={}
+renko_data={}
+
+for ticker in tickers:
+    temp = yf.download(ticker,period='1mo',interval='15m',multi_level_index=False)
+    temp.dropna(how="any",inplace=True)
+    ohlcv_data[ticker]= temp
+    
+    temp = yf.download(ticker,period='1y',interval='1h',multi_level_index=False)
+    temp.dropna(how="any",inplace=True)
+    hourly_data[ticker]= temp
+
+#df = ohlcv_data["RELIANCE.NS"]
+
+#print(ohlcv_data["RELIANCE.NS"].index.tz)  # None means naive; otherwise shows timezone
+
+# for ticker in ohlcv_data:
+#     ohlcv_data[ticker].index = ohlcv_data[ticker].index.tz_convert('Asia/Kolkata')
+
+
+#function to calculate macd
+#true range = max of high/low, 
+#=============================================================================
+def ATR(DF, n=14):
+    df = DF.copy()
+    df["H-L"] = df["High"]-df["Low"]
+    df["H-PC"] = df["High"]-df["Close"].shift(1)
+    df["L-PC"] = df["Low"]-df["Close"].shift(1)
+    #Set axis to calculate the max across rows
+    df["TR"] = df[["H-L","H-PC","L-PC"]].max(axis=1,skipna=False)
+    #Can use com instead of span in case of high divergence vs charting tool - kite, tradingview
+    df["ATR"] = df["TR"].ewm(span=n,min_periods=n).mean()
+    return df["ATR"]
+#=============================================================================
+
+
+def renko(DF,hourly_df):
+    df = DF.copy()
+    #remove volume and index columns
+    df.drop("Volume",axis=1,inplace=True)
+    df.reset_index(inplace=True)
+    #rename columns to suit renko library
+    df.columns=["date","close","high","low","open"]
+    df2=Renko(df)
+    #get the ATR's last value
+    df2.brick_size=3*round(ATR(hourly_df,120).iloc[-1],0)
+    renko_df=df2.get_ohlc_data()
+    return renko_df
+
+for ticker in ohlcv_data:
+    renko_data[ticker]=renko(ohlcv_data[ticker], hourly_data[ticker])
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
