@@ -21,8 +21,7 @@ key_path = "C:\\Users\\jauha\\anaconda3\\envs\\algoTrading\\Projects\\Alpha vant
 #data=ts.get_daily(symbol="EURUSD",outputsize="full")[0]
 #data.columns = ["open","high","low","close","vol"]
 
-#
-data=data.iloc[::-1]
+#data=data.iloc[::-1]
 
 
 all_tickers= ["ACHR","NVDA","RKLB","TSMC"]
