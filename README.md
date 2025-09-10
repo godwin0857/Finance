@@ -39,15 +39,15 @@ Usage
 - Optimized for use with Jupyter Notebook/Spyder for iterative analysis, or command-line execution for workflow automation.
 - Step-by-step comments and function docstrings are included to facilitate understanding, modification, and extension.
 
-Requirements
+Requirements\
 Python 3.7+
 
-Key Libraries
+Key Libraries\
 pandas, numpy, yfinance, alpha_vantage, stocktrends, matplotlib, beautiful soup, selenium
 
-Author
+Author\
 Built and maintained by a product guy dabbling with programming, financial market analysis, and data automation workflows.
 
-Credits
+Credits\
 Based on learnings from https://www.udemy.com/user/mayank-rasu/
 
