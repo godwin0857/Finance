@@ -40,7 +40,7 @@ def volatility(DF):
 
 def sharpe(DF,rf):
     df=DF.copy()
-    sharpe=(CAGR(DF)-rf)/volatility(DF)
+    sharpe=(CAGR(df)-rf)/volatility(df)
     return sharpe
 
 def sortino(DF,rf):

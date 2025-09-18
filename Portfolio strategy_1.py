@@ -175,13 +175,13 @@ def CAGR(DF):
 nifty_data=yf.download(("^NSEI"),period='10y',interval='1mo',multi_level_index=False)
 nifty_data["mon_ret"]=nifty_data["Close"].pct_change()
 
-print("CAGR for the portfolio1 is ", CAGR(portfolio1(return_df,10,3)))
-print("Sharpe for the portfolio1 is ",sharpe(portfolio1(return_df,10,3), 0.06))
-print("MaxDD for the portfolio1 is ",maxDD(portfolio1(return_df,10,3)))
+print("CAGR for the portfolio1 is {:.2%}".format(CAGR(portfolio1(return_df,10,3))))
+print("Sharpe for the portfolio1 is {:.2%}".format(sharpe(portfolio1(return_df,10,3), 0.06)))
+print("MaxDD for the portfolio1 is {:.2%}".format(maxDD(portfolio1(return_df,10,3))))
 
-print("CAGR for the portfolio is ", CAGR(portfolio(return_df,10,3)))
-print("Sharpe for the portfolio is ",sharpe(portfolio(return_df,10,3), 0.06))
-print("MaxDD for the portfolio is ",maxDD(portfolio(return_df,10,3)))
+print("CAGR for the portfolio is {:.2%}".format(CAGR(portfolio(return_df,10,3))))
+print("Sharpe for the portfolio is {:.2%}".format(sharpe(portfolio(return_df,10,3), 0.06)))
+print("MaxDD for the portfolio is {:.2%}".format(maxDD(portfolio(return_df,10,3))))
 
 
 
@@ -194,12 +194,13 @@ print("Max DD of NIFTY is {:.2%}".format(maxDD(nifty_data)))
 
 fig, ax = plt.subplots()
 ax.plot((1 + portfolio1(return_df, 10, 3)).cumprod())
+ax.plot((1 + portfolio(return_df, 10, 3)).cumprod())
 ax.plot((1+nifty_data["mon_ret"][2:].reset_index(drop=True)).cumprod())
 
 plt.xticks(rotation=45)  # Makes labels more readable
 plt.title("Index Returns vs Strategy Returns")
 plt.ylabel("Cumulative Return")
 plt.xlabel("Months")
-ax.legend(["Strategy Returns","Index Returns"])
+ax.legend(["Strategy1 Returns","Strategy Return","Index Returns"])
 plt.show()
 
