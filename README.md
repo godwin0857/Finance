@@ -48,6 +48,3 @@ pandas, numpy, yfinance, alpha_vantage, stocktrends, matplotlib, beautiful soup,
 Author\
 Built and maintained by a product guy dabbling with programming, financial market analysis, and data automation workflows.
 
-Credits\
-Based on learnings from https://www.udemy.com/user/mayank-rasu/
-
