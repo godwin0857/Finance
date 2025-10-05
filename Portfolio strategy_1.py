@@ -67,7 +67,7 @@ tickers = [
 ]
 
 ohlcv_mdata={}
-start=dt.datetime.today()-dt.timedelta(3650)
+start=dt.datetime.today()-dt.timedelta(730)
 end=dt.datetime.today()
 
 for ticker in tickers:
