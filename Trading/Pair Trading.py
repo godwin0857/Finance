@@ -220,6 +220,42 @@ def pair_trading_backtest_adaptive_threshold(stock_dict, stock1, stock2,
 # Usage example:
 # trades = pair_trading_backtest_adaptive_threshold(stock_dict, 'AAPL', 'MSFT')
 
+def _total_net_gains(trades_df: pd.DataFrame) -> float:
+    # Sum of pnl column; empty DataFrame yields 0.0
+    if trades_df is None or trades_df.empty:
+        return 0.0
+    return float(trades_df['pnl'].sum())
+
+def _pair_correlation_and_years(stock_dict, stock1: str, stock2: str):
+    # Align and compute correlation on log returns; also return span in years
+    df1, df2 = align_stock_data(stock_dict[stock1], stock_dict[stock2])
+    close_df = pd.DataFrame({stock1: df1['Close'], stock2: df2['Close']})
+    log_ret = np.log(close_df / close_df.shift(1)).dropna()
+    corr = float(log_ret[stock1].corr(log_ret[stock2])) if not log_ret.empty else np.nan
+    if len(close_df.index) >= 2:
+        days_span = (close_df.index[-1] - close_df.index[0]).days
+        years_span = days_span / 247.7 if days_span > 0 else 0.0
+    else:
+        years_span = 0.0
+    return corr, years_span
+
+def _information_ratio(trades_df: pd.DataFrame, years_span: float) -> float:
+    # IR = annualized return / annualized volatility using trade returns approximation
+    if trades_df is None or trades_df.empty or years_span <= 0:
+        return 0.0
+    trade_returns = trades_df['pnl_pct'].dropna()
+    if trade_returns.empty:
+        return 0.0
+    trades_per_year = len(trade_returns) / years_span
+    mean_per_trade = trade_returns.mean()
+    std_per_trade = trade_returns.std(ddof=1)
+    if std_per_trade == 0 or trades_per_year <= 0:
+        return 0.0
+    ann_return = mean_per_trade * trades_per_year
+    ann_vol = std_per_trade * np.sqrt(trades_per_year)
+    return float(ann_return / ann_vol) if ann_vol != 0 else 0.0
+
+
 allTrades20_80_0=pd.DataFrame()
 # allTradesIn20_80_0={}
 # allTrades["HINDALCO.NS - TATASTEEL.NS"]=pair_trading_backtest_adaptive_threshold(stock_data, 'HINDALCO.NS', 'TATASTEEL.NS')
@@ -231,13 +267,40 @@ allTrades20_80_0=pd.DataFrame()
 
 highCovarPair = getCov(stock_data, 0.7)
 processed = set()
-net_pnl=0
+
+# Single dictionary keyed by pair_key with requested columns
+pair_comparison = {}
+sto_periods = [20, 14, 10, 7]
+
 for pair in highCovarPair:
     pair_f = frozenset(pair)
     if (pair_f in processed):
         continue
     pair_l=list(pair_f)
-    allTrades20_80_0[pair] = pair_trading_backtest_adaptive_threshold(stock_data, pair_l[0], pair_l[1],20,80,0)
-    net_pnl = net_pnl + allTrades20_80_0[pair]['pnl'].sum()
-    print('Net pnl = ',net_pnl)
+    pair_key = "{} - {}".format(pair_l[0],pair_l[1])
+
+    corr, years_span = _pair_correlation_and_years(stock_data, pair_l[0], pair_l[1])
+
+    # Initialize row dict with correlation
+    row = {
+        'correlation': corr
+    }
+
+    # Per-period stats
+    for sto_n in sto_periods:
+        trades_df = pair_trading_backtest_adaptive_threshold(stock_data, pair_l[0], pair_l[1], sto_n, 80, 0)
+        row[f'net_gains_{sto_n}'] = _total_net_gains(trades_df)
+        row[f'num_trades_{sto_n}'] = int(0 if trades_df is None else len(trades_df))
+        row[f'information_ratio_{sto_n}'] = _information_ratio(trades_df, years_span)
+
+    pair_comparison[pair_key] = row
+
+    # Concise summary to console
+    print(f"Summary for {pair_key} (entry 80, exit 0): corr={corr:.3f}")
+    for sto_n in sto_periods:
+        print(
+            f"  sto_n={sto_n}: net_gains={row[f'net_gains_{sto_n}']:.2f}, "
+            f"trades={row[f'num_trades_{sto_n}']}, IR={row[f'information_ratio_{sto_n}']:.3f}"
+        )
+
     processed.add(pair_f)
